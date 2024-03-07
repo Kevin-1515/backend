@@ -15,6 +15,28 @@ let conexion = mysql.createConnection({
 
 });
 
+app.post('/prueba',(req,res)=> {
+    const infoprueba = req.body;
+    const requiredKeys = ["p1"]
+    try{
+        if (Object.keys(infoprueba).includes("p1"))
+        {
+            const sql  = "INSERT INTO pruebas (nombre) VALUES (req.body)"
+            
+
+            res.send("dato insertado");
+            
+            console.log("dato a insertar", req.body);
+        }
+        else{
+            res.sendStatus(500)
+            console.log("pailas, no se pudo");
+        }
+    }
+    catch{
+        res.sendStatus(500);
+    }
+});
 
 app.get('/partidos',(req, res)=>{
     console.log("alguien hizo get en la ruta /partidos");
@@ -110,5 +132,6 @@ const main =() =>{
 
     
 };
+
 
 main();
