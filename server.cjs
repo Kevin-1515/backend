@@ -1,42 +1,22 @@
 
 
-
+const cors = require('cors');
+const lod = require('lodash');
 const express = require('express');
 const app = express();
 app.use(express.json());
-
+app.use(cors());
 
 let mysql = require("mysql");
 let conexion = mysql.createConnection({
-    hots: "localhost:3306",
+    host: "localhost",
+    port: "3306",
     database: "planillas",
     user: "root",
     password: "root"
 
 });
 
-app.post('/prueba',(req,res)=> {
-    const infoprueba = req.body;
-    const requiredKeys = ["p1"]
-    try{
-        if (Object.keys(infoprueba).includes("p1"))
-        {
-            const sql  = "INSERT INTO pruebas (nombre) VALUES (req.body)"
-            
-
-            res.send("dato insertado");
-            
-            console.log("dato a insertar", req.body);
-        }
-        else{
-            res.sendStatus(500)
-            console.log("pailas, no se pudo");
-        }
-    }
-    catch{
-        res.sendStatus(500);
-    }
-});
 
 app.get('/partidos',(req, res)=>{
     console.log("alguien hizo get en la ruta /partidos");
@@ -46,14 +26,67 @@ app.get('/partidos',(req, res)=>{
 
 app.post("/partidos/nuevo",(req,res) => {
     const infoPartido = req.body;
-
+    let id= null;
+    console.log(req.body)
     try{
-        if (Object.keys(infoPartido).includes("equipo1") && Object.keys(infoPartido).includes("equipo2"))
-    {
-        res.send("partido creado");
-            res.status(200);
-            console.log("partido a crear", req.body);
+        if (Object.keys(req.body) !== null)
+    {   
+        const valores= [req.body.ciudad,req.body.escenario,req.body.division,req.body.categoria, req.body.fechaYHora];
+        console.log(valores);
+        
+        const sql ="INSERT INTO partidos (ciudad,escenario,division,categoria,fecha) VALUES (?,?,?,?,?)";
+        const sqlg="SELECT last_insert_id() AS last_id";
+        
+        
+        conexion.query(sql, valores, (error, results)=>{
+            if (error) {
+                console.error("error al insertar datos", error);
+            }
+        }
+        
+        );
+
+        conexion.query(sqlg,(error,results) => {
+            if (error){
+                console.error(error);
+                
+            }
+
+        id= results[0].last_id;
+        const sqle="INSERT INTO equipos (nombre,partidos_idpartido) VALUES (?,?)";
+
+        });
+        const valores1= [req.body.equipo1,id];
+        
+        conexion.query(sqle,valores1, (error,results)=>{
             
+            
+            if (error){
+                console.error(error);
+                
+            }
+
+        });
+
+        const valores2= [req.body.equipo2,id];
+        
+        conexion.query(sqle,valores2, (error,results)=>{
+            
+            
+            if (error){
+                console.error(error);
+                
+            }
+
+        });
+
+        
+
+        
+        res.send("partido creado");
+        res.status(200);
+        console.log("partido a crear", req.body);
+        
         }
         else{
             res.sendStatus(500);
@@ -81,37 +114,79 @@ app.get('/partidos/n/equipon',(req, res)=>{
     })
 });
 
-
-app.post("/partidos/n/equipon",(req,res) => {
-    const infEquipo = req.body;
-    const requiredKeys = ["j1" ,"j2", "j3", "j4", "j5", "j6"]
+app.post("/partidos/setn",(req, res)=>{
+    const infoSets = req.body;
     try{
-        if (requiredKeys.every(key => Object.keys(infEquipo).includes(key))){
-
-            res.send("Equipo creado");
-            conexion.collection("equipos").insertOne(infEquipo), (err,result) =>{
-                if(err){
-                    console.log(err);
-                    res.sendStatus(500);
+        if (Object.keys(req.body) !==null){
+            const valores1 = [req.body.puntosASet1, req.body.puntosBSet1 , 1 ,3];
+            const valores2 = [req.body.puntosASet2, req.body.puntosBSet2 , 2 ,3];
+            const valores3 = [req.body.puntosASet3, req.body.puntosBSet3 , 3 ,3];
+            console.log(valores1);
+            console.log(valores2);
+            console.log(valores3);
+            const sql = "INSERT INTO sets (puntosEqA, puntosEqB, numeroSet, partidos_idpartido) VALUES (?,?,?,?)";
+            conexion.query(sql,valores1,(error, results)=>{
+                if (error){
+                    console.error("error al insertar set", error);
                 }
-                else{
-                    res.sendStatus(200);
-                    console.log(result);
+            })
+            conexion.query(sql,valores2,(error, results)=>{
+                if (error){
+                    console.error("error al insertar set", error);
+                }
+            })
+            conexion.query(sql,valores3,(error, results)=>{
+                if (error){
+                    console.error("error al insertar set", error);
+                }
+            })
+
+            res.send("sets creados");
+            res.status(200);
+            console.log("datos insertados",req.body);
+        }
+
+        else{
+            res.sendStatus(500);
+            console.log("debe haber información de los sets")
+        }
+
+    }
+    catch{
+        res.sendStatus(500)
+    }
+}
+
+);
+
+app.post("/partidos/equipon",(req,res) => {
+    const infEquipo = req.body;
+    console.log(req.body);
+    try{
+        if(Object.keys(req.body) !== null)
+        {
+            const valores=[req.body.nombre,1]
+            const sql = "INSERT INTO equipos(nombre, partidos_idpartido) VALUES (?,?)"  
+            conexion.query(sql, valores,(error, results)=>{
+                if (error){
+                    console.error("error al insertar equipo", error);
                 }
             }
-            res.status(200);
-            console.log("equipo a crear", req.body);
+        )
+        res.send("equipo creado");
+        res.status(200)
+        console.log("equipo a crear", req.body);
         }
         else{
             res.sendStatus(500);
-            console.log("debes tener mínimo 6 jugadores para crear el equipo");
+            console.log("debes ingresar un pinche nombre")
         }
     }
-
     catch{
         res.sendStatus(500);
     }
-
+    
+    
 });
 
 
@@ -122,6 +197,7 @@ const main =() =>{
     conexion.connect ((err)=>{
         if(err){
             console.error("Error conectando a la base de datos");
+            console.log(err)
         }else {
         console.log("conexión exitosa");
         return app.listen(5000, () => {
@@ -135,3 +211,4 @@ const main =() =>{
 
 
 main();
+
