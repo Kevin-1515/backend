@@ -21,10 +21,34 @@ let idEquipo1;
 let idEquipo2;
 app.get('/partidos',(req, res)=>{
     console.log("alguien hizo get en la ruta /partidos");
-    res.send('Aun no hay partidos');
-    
+    const sql= "select p.idpartido, p.fecha, (select e.nombre from equipos e where p.idpartido = e.partidos_idpartido limit 1) as nomEq1, (select e.nombre from equipos e where p.idpartido = e.partidos_idpartido limit 1 offset 1) as nomEq2 from partidos p   inner join equipos e on p.idpartido = e.partidos_idpartido   group by p.idpartido;";
+    conexion.query(sql,(error, results) =>{
+        if (error){
+            console.error("Error al obtener el historial", error);
+            return res.status(500).send("Error interno del servidor");
+
+        }
+        else{
+            res.json(results);
+            console.log(results);
+        }
+    }
+    );
 });
 /**crear partido con equipos completo :D :D :D :D :D */
+
+app.get('/partido',(req,res)=>{
+    console.log("alguien quiere saber un partido en especifico");
+    
+}
+
+);
+
+
+
+
+
+
 
 app.post("/partidos/nuevo", (req, res) => {
     const infoPartido = req.body;
@@ -99,18 +123,7 @@ app.post("/partidos/nuevo", (req, res) => {
 });
 
 
-app.get('/partidos/n/jugador',(req, res)=>{
-    console.log("alguien hizo get en la ruta /jugadores/n");
-    conexion.collection("equipos").find({}).limit(50).toArray((err,result)=> {
-        if (err){
-            res.status(400).send("error consultando los equipos");
-        }
-        else{
-            res.json(result);
-            res.sendStatus(200);
-        }
-    })
-});
+
 
 app.post("/partidos/setn",(req, res)=>{
     const infoSets = req.body;
