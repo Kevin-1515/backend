@@ -38,10 +38,27 @@ app.get('/partidos',(req, res)=>{
 /**crear partido con equipos completo :D :D :D :D :D */
 
 app.get('/partido',(req,res)=>{
-    console.log("alguien quiere saber un partido en especifico");
-    
-}
+    try{
+        console.log("alguien quiere saber un partido en especifico");
+    const sqlsets = "select count(*) from partidos p inner join sets e on p.idpartido= e.partidos_idpartido and p.idpartido = ?;";
+    idpet =req.body.id;
+    console.log(idpet);
+    conexion.query(sqlsets,idpet,(error,results)=>{
+        if (error){
+            console.error("algo falló",error);
+            return res.status(500).send("Error interno del servidor");
+        }
+        CantSets= results[0]["count(*)"] ;
+        console.log(CantSets);
+        
+    }
+    )
+    }
+    catch{
+        res.status(500).send("error interno del servidor");
+    }
 
+}
 );
 
 
